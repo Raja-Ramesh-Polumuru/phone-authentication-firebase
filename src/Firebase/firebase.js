@@ -13,8 +13,8 @@ const firebaseConfig = {
   projectId: "auth-demo-645ca",
   storageBucket: "auth-demo-645ca.appspot.com",
   messagingSenderId: "1014725706696",
-  appId: "1:1014725706696:web:608695953f624f1257b6fd",
-  measurementId: "G-RJCFHYGPVN",
+  appId: "1:1014725706696:web:8083e2360dc3540357b6fd",
+  measurementId: "G-D49RQC6WJY",
 };
 
 // Initialize Firebase

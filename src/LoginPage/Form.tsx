@@ -1,106 +1,120 @@
-import React, { useRef } from "react";
-import styled from "styled-components";
+import React, { useEffect, useRef, useState } from "react";
 import { signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
 import { auth } from "../Firebase/firebase";
-
-const FormWrapper = styled.div`
-  display: grid;
-  align-items: center;
-  align-content: center;
-  justify-items: center;
-  justify-content: center;
-  background-color: #f9fcf9;
-  color: #0c363d;
-  font-family: "Lato", sans-serif; ;
-`;
-const InputWrapper = styled.input`
-  width: 100%;
-  padding: 10px 20px;
-  border-radius: 4px;
-  border: 1px solid #adbdb5;
-  ::placeholder {
-    color: #839194;
-  }
-`;
-const WelcomeTextWrapper = styled.h2``;
-const HelpTextWrapper = styled.p``;
-const LabelWrapper = styled.label`
-  text-align: left;
-`;
-const SignInBtnWrapper = styled.button``;
+import { validateOTP, validatePhNum } from "./helper";
+import {
+  BackGroundWrapper,
+  FormWrapper,
+  HeaderTextWrapper,
+  WelcomeTextWrapper,
+  HelpTextWrapper,
+  FormItemWrapper,
+  LabelWrapper,
+  InputWrapper,
+  SignInBtnWrapper,
+} from "./styled-components";
 
 export const Form: React.FC<any> = () => {
   const phoneNumberRef = useRef<HTMLInputElement | null>(null);
   const otpRef = useRef<HTMLInputElement | null>(null);
-
-  const isValid = (phoneNumber: string, otp: number) => {
-    if (!phoneNumber) {
-      alert("Please enter valid Phone Number");
-      return false;
-    }
-    if (!otp) {
-      alert("Please enter valid OTP");
-      return false;
-    }
-  };
-  const signInWithPhone = (phoneNumber: string) => {
-    try {
-      console.log("PhoneNumber", phoneNumber);
-      signInWithPhoneNumber(
-        auth,
-        phoneNumber,
-        new RecaptchaVerifier(
-          "recaptcha-container",
-          {
-            size: "normal",
-            callback: (response) => {
-              // reCAPTCHA solved, allow signInWithPhoneNumber.
-              console.log("this is recaptcha");
-            },
-            "expired-callback": () => {
-              // Response expired. Ask user to solve reCAPTCHA again.
-              // ...
-              console.log("expired");
-            },
+  const [confirmationResult, setConfirmationResult] = useState<any>();
+  const [isOTPInputVisible, setOTPInputVisible] = useState(false);
+  const [appVerifier, setAppVerifier] = useState<any>();
+  const [userLoggedIn, setUserLoggedIn] = useState<boolean>(false);
+  useEffect(() => {
+    setAppVerifier(
+      new RecaptchaVerifier(
+        "recaptcha-container",
+        {
+          size: "normal",
+          callback: (response) => {
+            console.log(response);
           },
-          auth
-        )
-      ).then((res) => console.log({ res }));
+          "expired-callback": () => {
+            console.log("expired");
+          },
+        },
+        auth
+      )
+    );
+  }, []);
+
+  const generateOtp = (phoneNumber: string) => {
+    try {
+      signInWithPhoneNumber(auth, phoneNumber, appVerifier).then((res) => {
+        setConfirmationResult(res);
+        setOTPInputVisible(true);
+        setAppVerifier(null);
+        const captchaNode = document.getElementById("recaptcha-container");
+        if (captchaNode) {
+          captchaNode.innerHTML = "";
+        }
+      });
     } catch (error) {
+      console.error(error);
       return error;
     }
   };
-  const handleSubmit = () => {
+  const handleGenerateOTP = () => {
     let phoneNumberValue = phoneNumberRef.current?.value ?? "";
-    let OTPValue = parseFloat(otpRef.current?.value ?? "");
-
-    // console.log({
-    //   phno: phoneNumberRef.current?.value,
-    //   otp: otpRef.current?.value,
-    // });
-    // window.recaptchaVerifier = new RecaptchaVerifier(
-    //   "sign-in-button",
-    //   {
-    //     size: "invisible",
-    //     callback: (response) => {
-    //       // reCAPTCHA solved, allow signInWithPhoneNumber.
-    signInWithPhone(phoneNumberValue);
-    //       console.log("Reacptcha callback");
-    //     },
-    //   },
-    //   auth
-    // );
+    if (validatePhNum(phoneNumberValue)) generateOtp(phoneNumberValue);
+  };
+  const handleSignIn = () => {
+    const OTPVal = otpRef.current?.value ?? "";
+    if (validateOTP(OTPVal))
+      confirmationResult
+        .confirm(OTPVal)
+        .then((result) => {
+          const user = result.user;
+          if (user?.accessToken) {
+            setUserLoggedIn(true);
+          }
+          console.log({ user });
+        })
+        .catch((error) => {
+          console.error({ error });
+        });
   };
 
   return (
-    <FormWrapper>
-      <WelcomeTextWrapper>Welcome back</WelcomeTextWrapper>
-      <HelpTextWrapper>Please enter your details.</HelpTextWrapper>
-      <LabelWrapper>Phone Number</LabelWrapper>
-      <InputWrapper placeholder="Phone Number" ref={phoneNumberRef} />
-      <LabelWrapper>One Time Password</LabelWrapper>
-      <InputWrapper placeholder="******" ref={otpRef} />
-      <SignInBtnWrapper onClick={handleSubmit}>Sign in</SignInBtnWrapper>
-    </FormWrapper>
+    <BackGroundWrapper>
+      <FormWrapper>
+        {userLoggedIn ? (
+          <>Successfully Logged in</>
+        ) : (
+          <>
+            <HeaderTextWrapper>
+              <WelcomeTextWrapper>Welcome back</WelcomeTextWrapper>
+              <HelpTextWrapper>Please enter your details.</HelpTextWrapper>
+            </HeaderTextWrapper>
+            <FormItemWrapper>
+              <LabelWrapper>Phone Number</LabelWrapper>
+              <InputWrapper
+                placeholder="Enter your phone number"
+                ref={phoneNumberRef}
+              />
+            </FormItemWrapper>
+            {isOTPInputVisible ? (
+              <FormItemWrapper>
+                <LabelWrapper>One Time Password</LabelWrapper>
+                <InputWrapper placeholder="******" ref={otpRef} />
+              </FormItemWrapper>
+            ) : (
+              <></>
+            )}
+            <div id="recaptcha-container"></div>
+            {isOTPInputVisible ? (
+              <SignInBtnWrapper onClick={handleSignIn}>
+                Sign in
+              </SignInBtnWrapper>
+            ) : (
+              <SignInBtnWrapper onClick={handleGenerateOTP}>
+                Generate OTP
+              </SignInBtnWrapper>
+            )}
+          </>
+        )}
+      </FormWrapper>
+    </BackGroundWrapper>
   );
 };
