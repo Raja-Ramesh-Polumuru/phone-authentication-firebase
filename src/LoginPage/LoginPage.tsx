@@ -8,15 +8,17 @@ const LoginPageWrapper = styled.div`
   grid-template-columns: 50% 50%;
 `;
 const BackgroundImageCmp = styled.img`
- width: 50vw;
- height: 100vh;
+  width: 50vw;
+  height: 100vh;
   background-size: cover;
 `;
+
+
 
 const LoginPage = () => {
   return (
     <LoginPageWrapper>
-      <Form />
+      <Form  />
       <BackgroundImageCmp src={BgImg} alt="bg-img" loading="lazy" />
     </LoginPageWrapper>
   );
