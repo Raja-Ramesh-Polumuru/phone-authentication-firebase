@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/phone-authentication-firebase/static/css/main.073c9b0a.css",
+    "main.js": "/phone-authentication-firebase/static/js/main.aed972ac.js",
+    "static/js/787.20e374c1.chunk.js": "/phone-authentication-firebase/static/js/787.20e374c1.chunk.js",
+    "static/media/background.jpeg": "/phone-authentication-firebase/static/media/background.7f3dd897bbcb5163663d.jpeg",
+    "index.html": "/phone-authentication-firebase/index.html",
+    "main.073c9b0a.css.map": "/phone-authentication-firebase/static/css/main.073c9b0a.css.map",
+    "main.aed972ac.js.map": "/phone-authentication-firebase/static/js/main.aed972ac.js.map",
+    "787.20e374c1.chunk.js.map": "/phone-authentication-firebase/static/js/787.20e374c1.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.073c9b0a.css",
+    "static/js/main.aed972ac.js"
+  ]
+}
